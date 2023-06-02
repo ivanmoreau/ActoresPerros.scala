@@ -1,0 +1,6 @@
+.bloop/
+.direnv/
+.metals/
+.vscode/
+target/
+metals.sbt
