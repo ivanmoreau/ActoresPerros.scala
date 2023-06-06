@@ -26,6 +26,30 @@ object Calculator extends Actor:
   yield 132948298
 end Calculator
 
+/*
+
+OPTION 1
+
+askTimed(askTimeout: FiniteDuration): IO[Result]
+
+OPTION 2
+
+askSecure(implicit secure: SecureAsk[Result]): IO[Result]
+
+secure { implicit s =>
+
+  _ <- sendSecure(273)
+
+  _ <- askSecure
+  _ <- askSecure // error
+
+  _ <- sendSecure(273)  
+
+}
+
+*/
+
+
 object Main extends IOApp.Simple:
   override def run = IO.unit *> {
     for

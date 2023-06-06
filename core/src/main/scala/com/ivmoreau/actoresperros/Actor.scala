@@ -6,6 +6,7 @@ import cats.effect.IO
 import com.ivmoreau.actoresperros.internal.ActorInternal
 import com.ivmoreau.actoresperros.factory.DefaultActorFactory
 import com.ivmoreau.actoresperros.api.{ActorMethods, ActorRef}
+import scala.concurrent.duration.FiniteDuration
 
 trait Actor:
 
@@ -14,6 +15,7 @@ trait Actor:
   type Result
 
   def get(using aM: ActorMethods[Msg, Result]): IO[Msg] = aM.get
+  def getTimed(timeout: FiniteDuration)(using aM: ActorMethods[Msg, Result]): IO[Option[Msg]] = aM.getTimed(timeout)
   def send(result: Result)(using aM: ActorMethods[Msg, Result]): IO[Unit] = aM.send(result)
 
   def function(st: State)(using ActorMethods[Msg, Result]): IO[Result]
@@ -23,6 +25,7 @@ trait Actor:
       (ai: ActorInternal[Msg, State, Result]) =>
         given ActorMethods[Msg, Result] with
           override def get: IO[Msg] = ai.queue.take
+          override def getTimed(timeout: FiniteDuration): IO[Option[Msg]] = ai.queue.take.timeout(timeout).attempt.map(_.toOption)
           override def send(result: Result): IO[Unit] = ai.outQueue.offer(result)
         ai.actorRef(state => function(state))
     }
