@@ -11,16 +11,19 @@ trait Actor:
 
   type Msg
   type State
+  type Result
 
-  def get(using aM: ActorMethods[Msg]): IO[Msg] = aM.get
+  def get(using aM: ActorMethods[Msg, Result]): IO[Msg] = aM.get
+  def send(result: Result)(using aM: ActorMethods[Msg, Result]): IO[Unit] = aM.send(result)
 
-  def function(st: State)(using ActorMethods[Msg]): IO[Unit]
+  def function(st: State)(using ActorMethods[Msg, Result]): IO[Result]
 
-  def apply(init: State): IO[ActorRef[Msg]] =
+  def apply(init: State): IO[ActorRef[Msg, Result]] =
     DefaultActorFactory.createActor(init).flatMap {
-      (ai: ActorInternal[Msg, State]) =>
-        given ActorMethods[Msg] with
+      (ai: ActorInternal[Msg, State, Result]) =>
+        given ActorMethods[Msg, Result] with
           override def get: IO[Msg] = ai.queue.take
+          override def send(result: Result): IO[Unit] = ai.outQueue.offer(result)
         ai.actorRef(state => function(state))
     }
 end Actor

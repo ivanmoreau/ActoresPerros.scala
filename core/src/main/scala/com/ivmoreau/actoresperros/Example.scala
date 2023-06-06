@@ -15,13 +15,15 @@ object Calculator extends Actor:
 
   type State = Unit
 
-  def function(st: State)(using ActorMethods[Msg]): IO[Unit] = for
+  type Result = Int
+
+  def function(st: State)(using ActorMethods[Msg, Result]): IO[Int] = for
     msg <- get
     _ <- msg match
       case Msg.Add(value) =>
-        Console[IO].println(s"Add: ${value + 420}") *> function(st)
+        Console[IO].println(s"Add: ${value + 420}") *> send(273) *> function(st)
       case Msg.Stop => Console[IO].println("Stop")
-  yield ()
+  yield 132948298
 end Calculator
 
 object Main extends IOApp.Simple:
@@ -31,11 +33,15 @@ object Main extends IOApp.Simple:
       h <- (IO.sleep(Duration("5s")) *> (calc ! Calculator.Msg.Add(420))).start
       calc2 <- Calculator(())
       _ <- calc2 ! Calculator.Msg.Add(69)
+      asked <- calc2.?
+      _ <- Console[IO].println(s"Asked: $asked")
       _ <- Console[IO].println("GO{ODPFD")
       _ <- calc ! Calculator.Msg.Add(10)
       h2 <- (IO.sleep(Duration("5s")) *> (calc ! Calculator.Msg.Stop)).start
       _ <- calc2 ! Calculator.Msg.Stop
       _ <- h.join
       _ <- h2.join
+      value <- calc.join()
+      _ <- Console[IO].println(s"Value: $value")
     yield ()
   }

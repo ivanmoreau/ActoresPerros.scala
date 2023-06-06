@@ -1,7 +1,7 @@
 package com.ivmoreau.actoresperros
 
 object all {
-  trait ActorMethods[Msg] extends api.ActorMethods[Msg]
-  trait ActorRef[Msg] extends api.ActorRef[Msg]
+  trait ActorMethods[Msg, Result] extends api.ActorMethods[Msg, Result]
+  trait ActorRef[Msg, Result] extends api.ActorRef[Msg, Result]
   trait Actor extends com.ivmoreau.actoresperros.Actor
 }
